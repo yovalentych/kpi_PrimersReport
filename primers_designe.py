@@ -7,8 +7,6 @@ seq_r = input("Введіть свою Reverse послідовність: ").up
 
 
 # комплементарність
-
-
 def getComplementSeq(seqForComplement):
     complementary = str()
     for char in seqForComplement:
@@ -25,8 +23,6 @@ def getComplementSeq(seqForComplement):
 
 
 # CG contain of primers (кількість)
-
-
 def getCGcontent(seqForCGcounter):
     counter_of_CG = 0
     for char in seqForCGcounter:
@@ -48,7 +44,6 @@ def getDeltaTempMelt(temp_melt_F, temp_melt_R):
 
 
 # Перевірка
-
 
 # 5
 def compareLenOfSeq(seqForCompareLen):
