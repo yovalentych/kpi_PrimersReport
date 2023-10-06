@@ -1,5 +1,7 @@
 import math
 import datetime
+from Bio.SeqUtils import MeltingTemp
+from Bio.Seq import Seq
 
 
 seq_f = input("Введіть свою Forward послідовність: ").upper()
