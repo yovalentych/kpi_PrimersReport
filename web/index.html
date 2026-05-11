@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PCR Primer Studio</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <nav class="top-nav" aria-label="Основна навігація">
+      <a href="#workspace">Primer Studio</a>
+      <a href="#results">Результати</a>
+      <a href="#parametersGuide">Параметри</a>
+      <a href="#qcGuide">QC</a>
+      <a href="#sourcesGuide">Джерела</a>
+    </nav>
+
+    <main class="app-shell">
+      <section class="workspace" id="workspace" aria-labelledby="app-title">
+        <div class="workspace__header">
+          <div>
+            <p class="eyebrow">Bioinformatics PCR toolkit</p>
+            <h1 id="app-title">PCR Primer Studio</h1>
+          </div>
+          <div class="status-pill" id="sequenceStatus">Очікує послідовність</div>
+        </div>
+
+        <div class="sequence-panel">
+          <div class="field-header">
+            <label for="dnaSequence">ДНК-послідовність або FASTA</label>
+            <div class="field-actions">
+              <button class="ghost-button" type="button" id="sampleBtn">Приклад</button>
+              <button class="ghost-button" type="button" id="clearBtn">Очистити</button>
+            </div>
+          </div>
+          <textarea
+            id="dnaSequence"
+            spellcheck="false"
+            placeholder="Вставте послідовність: ATGCGTACGTAGCTAGCTAA..."
+          ></textarea>
+          <div class="sequence-meta">
+            <span id="baseCount">0 bp</span>
+            <span id="gcSummary">GC: 0%</span>
+            <span id="validationMessage">Дозволені символи: A, C, G, T. FASTA-заголовки підтримуються.</span>
+          </div>
+        </div>
+
+        <div class="control-grid">
+          <label>
+            Мін. довжина
+            <input id="minLength" type="number" min="14" max="35" value="18" />
+          </label>
+          <label>
+            Опт. довжина
+            <input id="optLength" type="number" min="14" max="35" value="20" />
+          </label>
+          <label>
+            Макс. довжина
+            <input id="maxLength" type="number" min="14" max="35" value="27" />
+          </label>
+          <label>
+            Мін. GC %
+            <input id="minGc" type="number" min="20" max="80" value="40" />
+          </label>
+          <label>
+            Макс. GC %
+            <input id="maxGc" type="number" min="20" max="80" value="60" />
+          </label>
+          <label>
+            Мін. Tm °C
+            <input id="minTm" type="number" min="40" max="90" value="57" />
+          </label>
+          <label>
+            Опт. Tm °C
+            <input id="optTm" type="number" min="40" max="90" value="60" />
+          </label>
+          <label>
+            Макс. Tm °C
+            <input id="maxTm" type="number" min="40" max="90" value="63" />
+          </label>
+          <label>
+            Макс. ΔTm °C
+            <input id="maxDeltaTm" type="number" min="1" max="20" value="5" />
+          </label>
+          <label>
+            Мін. продукт bp
+            <input id="minProduct" type="number" min="45" max="5000" value="100" />
+          </label>
+          <label>
+            Макс. продукт bp
+            <input id="maxProduct" type="number" min="45" max="20000" value="1200" />
+          </label>
+          <label>
+            Макс. повтор
+            <input id="maxRun" type="number" min="3" max="8" value="4" />
+          </label>
+          <label>
+            Варіантів
+            <input id="candidateLimit" type="number" min="1" max="20" value="5" />
+          </label>
+        </div>
+
+        <div class="toolbar">
+          <button class="primary-button" type="button" id="analyzeBtn">Підібрати праймери</button>
+          <button class="secondary-button" type="button" id="downloadBtn" disabled>Завантажити звіт</button>
+        </div>
+      </section>
+
+      <aside class="visual-panel" aria-label="Sequence visualization">
+        <div class="helix" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="visual-panel__stats">
+          <div>
+            <span class="metric-label">Amplicon</span>
+            <strong id="ampliconSize">0 bp</strong>
+          </div>
+          <div>
+            <span class="metric-label">Delta Tm</span>
+            <strong id="deltaTm">0°C</strong>
+          </div>
+          <div>
+            <span class="metric-label">Pair score</span>
+            <strong id="pairScore">-</strong>
+          </div>
+        </div>
+      </aside>
+
+      <section class="results-area" id="results" aria-live="polite">
+        <div class="primer-card" id="forwardCard">
+          <div class="empty-state">Forward primer з'явиться після аналізу</div>
+        </div>
+        <div class="primer-card" id="reverseCard">
+          <div class="empty-state">Reverse primer з'явиться після аналізу</div>
+        </div>
+        <div class="candidate-panel">
+          <div class="report-panel__header">
+            <h2>Альтернативні пари</h2>
+            <span class="panel-note">Ранжування враховує Tm, GC, product size і ризики димерів</span>
+          </div>
+          <div id="candidatePairs" class="candidate-table">
+            <div class="empty-state">Після аналізу тут буде список кандидатних пар</div>
+          </div>
+        </div>
+        <section class="molecular-stage" id="molecularStage">
+          <div class="stage-header">
+            <div>
+              <p class="eyebrow">Binding map</p>
+              <h2>Матриця, праймери й синтез</h2>
+            </div>
+            <button class="ghost-button" type="button" id="replayAnimationBtn" disabled>Повторити</button>
+          </div>
+
+          <div class="sequence-map" id="sequenceMap">
+            <div class="empty-state">Тут буде підсвічена ділянка матриці після аналізу</div>
+          </div>
+
+          <div class="pcr-animation" id="pcrAnimation" aria-label="PCR synthesis animation">
+            <div class="nucleotide-preview" id="nucleotidePreview">
+              <div class="empty-state">Після аналізу тут з'являться реальні нуклеотиди амплікону</div>
+            </div>
+            <div class="strand-row top-strand">
+              <span class="strand-label">5'</span>
+              <div class="strand-line">
+                <span class="primer-block primer-block--forward"></span>
+                <span class="polymerase polymerase--forward">Pol</span>
+                <span class="extension extension--forward"></span>
+              </div>
+              <span class="strand-label">3'</span>
+            </div>
+            <div class="strand-row bottom-strand">
+              <span class="strand-label">3'</span>
+              <div class="strand-line">
+                <span class="extension extension--reverse"></span>
+                <span class="polymerase polymerase--reverse">Pol</span>
+                <span class="primer-block primer-block--reverse"></span>
+              </div>
+              <span class="strand-label">5'</span>
+            </div>
+            <div class="amplicon-window">
+              <span id="ampliconLabel">Амплікон з'явиться після підбору</span>
+            </div>
+          </div>
+        </section>
+        <div class="report-panel">
+          <div class="report-panel__header">
+            <h2>Звіт</h2>
+            <button class="ghost-button" type="button" id="copyReportBtn" disabled>Копіювати</button>
+          </div>
+          <pre id="reportOutput">Після аналізу тут буде готовий текстовий звіт.</pre>
+        </div>
+
+        <section class="knowledge-panel" id="parametersGuide">
+          <div class="knowledge-header">
+            <div>
+              <p class="eyebrow">Scientific guide</p>
+              <h2>Параметри дизайну праймерів</h2>
+            </div>
+            <span class="panel-note">Практичні критерії за Primer3, Primer-BLAST, IDT, Thermo Fisher і QIAGEN</span>
+          </div>
+          <div class="guide-grid">
+            <article class="guide-card">
+              <h3>Довжина праймера</h3>
+              <p>Типовий робочий діапазон для PCR-праймерів: 18-30 нуклеотидів. У застосунку окремо задаються мінімальна, оптимальна та максимальна довжина.</p>
+            </article>
+            <article class="guide-card">
+              <h3>Tm і ΔTm</h3>
+              <p>Пара має мати близькі температури плавлення. Фільтр `Макс. ΔTm` відсікає пари з надто різними Tm, бо вони гірше працюють при одній температурі annealing.</p>
+            </article>
+            <article class="guide-card">
+              <h3>GC content і GC clamp</h3>
+              <p>GC 40-60% часто є практичною ціллю. 3' кінець бажано завершувати G або C, але надлишок G/C на 3' кінці може підвищувати ризик димерів.</p>
+            </article>
+            <article class="guide-card">
+              <h3>Product size</h3>
+              <p>Діапазон продукту визначає довжину амплікону, який утвориться між forward і reverse праймерами. Для різних задач PCR цей діапазон задають окремо.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="knowledge-panel" id="qcGuide">
+          <div class="knowledge-header">
+            <div>
+              <p class="eyebrow">Quality control</p>
+              <h2>Що перевіряє застосунок</h2>
+            </div>
+          </div>
+          <div class="qc-list">
+            <div><strong>Homopolymer run</strong><span>Уникає довгих повторів одного нуклеотиду, наприклад `AAAAA` або `GGGGG`.</span></div>
+            <div><strong>Dinucleotide repeats</strong><span>Знижує пріоритет послідовностей із повторними мотивами на кшталт `ATATATAT`.</span></div>
+            <div><strong>Self-complementarity</strong><span>Оцінює ризик самодимерів або внутрішнього спарювання праймера евристичною довжиною комплементарного збігу.</span></div>
+            <div><strong>Heterodimer / 3' complementarity</strong><span>Оцінює комплементарність між forward і reverse, особливо на 3' кінцях, де ризик primer-dimer найбільш критичний.</span></div>
+            <div><strong>Pair score</strong><span>Інтегральний бал, який штрафує відхилення від оптимальних Tm/GC/довжини, небажані повтори, димери та невдалий розмір продукту.</span></div>
+          </div>
+        </section>
+
+        <section class="knowledge-panel" id="sourcesGuide">
+          <div class="knowledge-header">
+            <div>
+              <p class="eyebrow">References</p>
+              <h2>Наукові та технічні джерела</h2>
+            </div>
+          </div>
+          <div class="source-grid">
+            <a class="source-card" href="https://primer3.org/manual.html" target="_blank" rel="noreferrer">
+              <strong>Primer3 Manual</strong>
+              <span>Параметри дизайну: size, Tm, GC, product range, pair scoring.</span>
+            </a>
+            <a class="source-card" href="https://www.nlm.nih.gov/ncbi/workshops/2023-09_Primer-BLAST/PB_description.html" target="_blank" rel="noreferrer">
+              <strong>NCBI Primer-BLAST</strong>
+              <span>Комбінація Primer3-дизайну з BLAST-перевіркою specificity/off-target.</span>
+            </a>
+            <a class="source-card" href="https://www.thermofisher.com/uk/en/home/technical-resources/technical-reference-library/pcr-cdna-synthesis-support-center/end-point-pcr-primers-support/end-point-pcr-primers-support-getting-started.html" target="_blank" rel="noreferrer">
+              <strong>Thermo Fisher PCR primers</strong>
+              <span>Практичні рекомендації щодо довжини, Tm, GC clamp, повторів і secondary structure.</span>
+            </a>
+            <a class="source-card" href="https://www.idtdna.com/pages/support/faqs/how-can-i-check-my-pcr-primers-using-the-oligoanalyzer-program-to-ensure-there-are-no-significant-primer-design-issues-" target="_blank" rel="noreferrer">
+              <strong>IDT OligoAnalyzer guidance</strong>
+              <span>Підхід до self-dimer, hairpin, heterodimer і 3' complementarity.</span>
+            </a>
+            <a class="source-card" href="https://www.qiagen.com/us/knowledge-and-support/knowledge-hub/bench-guide/pcr/introduction/pcr-primer-design" target="_blank" rel="noreferrer">
+              <strong>QIAGEN PCR primer design</strong>
+              <span>Класична формула Tm 2(A+T)+4(G+C), 3' правила та концентрації праймерів.</span>
+            </a>
+          </div>
+          <p class="method-note">
+            Примітка: локальна оцінка в цьому застосунку не замінює BLAST/Primer-BLAST specificity screening проти геному або бази даних.
+          </p>
+        </section>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>Primer Studio для навчальних задач з біоінформатики та молекулярної біології.</p>
+      <p>Created by YHV</p>
+    </footer>
+
+    <script src="main.js"></script>
+  </body>
+</html>
