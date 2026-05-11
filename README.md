@@ -38,6 +38,25 @@ Then open:
 http://127.0.0.1:8080
 ```
 
+## Netlify Deployment
+
+This repository is configured for Netlify with `netlify.toml`.
+
+Netlify settings:
+
+```text
+Build command: npm run build
+Publish directory: web
+```
+
+The build command validates `web/main.js`; the deployed site is the static app in `web/`.
+
+Local development through npm:
+
+```bash
+npm run dev
+```
+
 ## Python CLI
 
 Interactive mode:

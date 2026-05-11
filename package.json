@@ -1,0 +1,18 @@
+{
+  "name": "pcr-primer-studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static PCR primer design web app with Python CLI tools.",
+  "scripts": {
+    "build": "node --check web/main.js",
+    "dev": "python3 -m http.server 8080 --directory web",
+    "test": "node --check web/main.js && python3 -m unittest -v"
+  },
+  "keywords": [
+    "pcr",
+    "primer-design",
+    "bioinformatics",
+    "netlify"
+  ],
+  "license": "MIT"
+}
